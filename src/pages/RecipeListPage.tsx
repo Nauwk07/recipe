@@ -1,5 +1,15 @@
 import React from 'react';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon } from '@ionic/react';
+import { 
+  IonPage, 
+  IonHeader, 
+  IonToolbar, 
+  IonTitle, 
+  IonContent, 
+  IonButtons, 
+  IonButton, 
+  IonIcon,
+  IonMenuButton
+} from '@ionic/react';
 import { add } from 'ionicons/icons';
 
 const RecipeListPage: React.FC = () => {
@@ -7,6 +17,9 @@ const RecipeListPage: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
+          <IonButtons slot="start">
+            <IonMenuButton />
+          </IonButtons>
           <IonTitle>Mes Recettes</IonTitle>
           <IonButtons slot="end">
             <IonButton routerLink="/recipe/new">

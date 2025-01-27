@@ -1,7 +1,12 @@
+import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
+import { IonApp, IonRouterOutlet, setupIonicReact, IonSplitPane } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import Home from './pages/Home';
+
+import Menu from './components/Menu';
+import RecipeListPage from './pages/RecipeListPage';
+import RecipeDetailPage from './pages/RecipeDetailPage';
+import RecipeFormPage from './pages/RecipeFormPage';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -35,19 +40,33 @@ import './theme/variables.css';
 
 setupIonicReact();
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonRouterOutlet>
-        <Route exact path="/home">
-          <Home />
-        </Route>
-        <Route exact path="/">
-          <Redirect to="/home" />
-        </Route>
-      </IonRouterOutlet>
-    </IonReactRouter>
-  </IonApp>
-);
+const App: React.FC = () => {
+  return (
+    <IonApp>
+      <IonReactRouter>
+        <IonSplitPane contentId="main">
+          <Menu />
+          <IonRouterOutlet id="main">
+            <Route exact path="/recipes">
+              <RecipeListPage />
+            </Route>
+            <Route exact path="/recipe/new">
+              <RecipeFormPage />
+            </Route>
+            <Route exact path="/recipe/:id">
+              <RecipeDetailPage />
+            </Route>
+            <Route exact path="/recipe/edit/:id">
+              <RecipeFormPage />
+            </Route>
+            <Route exact path="/">
+              <Redirect to="/recipes" />
+            </Route>
+          </IonRouterOutlet>
+        </IonSplitPane>
+      </IonReactRouter>
+    </IonApp>
+  );
+};
 
 export default App;
