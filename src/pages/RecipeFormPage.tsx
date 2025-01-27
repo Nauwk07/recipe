@@ -1,10 +1,53 @@
 import React from 'react';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton } from '@ionic/react';
-import { useParams } from 'react-router-dom';
+import { 
+  IonPage, 
+  IonHeader, 
+  IonToolbar, 
+  IonTitle, 
+  IonContent, 
+  IonButtons, 
+  IonBackButton,
+  useIonToast,
+} from '@ionic/react';
+import { useHistory } from 'react-router-dom';
+import { Recipe } from '../models/Recipe';
+import { StorageService } from '../services/StorageService';
+import RecipeForm from '../components/RecipeForm';
 
 const RecipeFormPage: React.FC = () => {
-  const { id } = useParams<{ id?: string }>();
-  const isEditing = !!id;
+  const history = useHistory();
+  const [presentToast] = useIonToast();
+
+  const handleSubmit = async (recipeData: Partial<Recipe>) => {
+    try {
+      const newRecipe: Recipe = {
+        ...recipeData as Recipe,
+        id: Date.now().toString(),
+        rating: 0,
+        ratingCount: 0,
+        isFavorite: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      await StorageService.addRecipe(newRecipe);
+      
+      presentToast({
+        message: 'Recette créée avec succès',
+        duration: 2000,
+        color: 'success',
+      });
+      
+      history.push('/recipes');
+    } catch (error) {
+      console.error('Erreur lors de la création:', error);
+      presentToast({
+        message: 'Erreur lors de la création de la recette',
+        duration: 2000,
+        color: 'danger',
+      });
+    }
+  };
 
   return (
     <IonPage>
@@ -13,11 +56,11 @@ const RecipeFormPage: React.FC = () => {
           <IonButtons slot="start">
             <IonBackButton defaultHref="/recipes" />
           </IonButtons>
-          <IonTitle>{isEditing ? 'Modifier la recette' : 'Nouvelle recette'}</IonTitle>
+          <IonTitle>Nouvelle recette</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        {/* Le contenu sera ajouté plus tard */}
+        <RecipeForm onSubmit={handleSubmit} />
       </IonContent>
     </IonPage>
   );

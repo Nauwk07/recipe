@@ -1,9 +1,8 @@
 import React from 'react';
-import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet, setupIonicReact, IonSplitPane } from '@ionic/react';
+import { Redirect, Route, Switch } from 'react-router-dom';
+import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 
-import Menu from './components/Menu';
 import RecipeListPage from './pages/RecipeListPage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
 import RecipeFormPage from './pages/RecipeFormPage';
@@ -24,46 +23,41 @@ import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* import '@ionic/react/css/palettes/dark.always.css'; */
-/* import '@ionic/react/css/palettes/dark.class.css'; */
-import '@ionic/react/css/palettes/dark.system.css';
-
 /* Theme variables */
 import './theme/variables.css';
 
-setupIonicReact();
+setupIonicReact({
+  mode: 'md'
+});
 
 const App: React.FC = () => {
   return (
     <IonApp>
       <IonReactRouter>
-        <IonSplitPane contentId="main">
-          <Menu />
-          <IonRouterOutlet id="main">
-            <Route exact path="/recipes">
-              <RecipeListPage />
-            </Route>
+        <IonRouterOutlet>
+          <Switch>
+            {/* Routes spécifiques d'abord */}
             <Route exact path="/recipe/new">
               <RecipeFormPage />
-            </Route>
-            <Route exact path="/recipe/:id">
-              <RecipeDetailPage />
             </Route>
             <Route exact path="/recipe/edit/:id">
               <RecipeFormPage />
             </Route>
+            
+            {/* Puis les routes avec paramètres */}
+            <Route exact path="/recipe/:id">
+              <RecipeDetailPage />
+            </Route>
+            
+            {/* Routes normales */}
+            <Route exact path="/recipes">
+              <RecipeListPage />
+            </Route>
             <Route exact path="/">
               <Redirect to="/recipes" />
             </Route>
-          </IonRouterOutlet>
-        </IonSplitPane>
+          </Switch>
+        </IonRouterOutlet>
       </IonReactRouter>
     </IonApp>
   );

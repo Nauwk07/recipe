@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  IonList,
   IonItem,
   IonLabel,
   IonInput,
@@ -8,12 +9,10 @@ import {
   IonSelectOption,
   IonButton,
   IonIcon,
-  IonList,
   IonItemDivider,
-  IonRange,
 } from '@ionic/react';
-import { add, remove, camera } from 'ionicons/icons';
-import { Recipe, RecipeType, DifficultyLevel, Ingredient, Step } from '../models/Recipe';
+import { add, remove } from 'ionicons/icons';
+import { Recipe, RecipeType, DifficultyLevel } from '../models/Recipe';
 
 interface RecipeFormProps {
   recipe?: Recipe;
@@ -21,31 +20,33 @@ interface RecipeFormProps {
 }
 
 const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
-  const [formData, setFormData] = useState<Partial<Recipe>>(
-    recipe || {
-      title: '',
-      description: '',
-      imageUrl: '',
-      type: RecipeType.MAIN,
-      preparationTime: 0,
-      cookingTime: 0,
-      servings: 4,
-      difficulty: DifficultyLevel.MEDIUM,
-      ingredients: [],
-      steps: [],
-    }
-  );
+  console.log('RecipeForm - Props reçues:', { recipe });
 
-  const [newIngredient, setNewIngredient] = useState<Partial<Ingredient>>({
-    name: '',
-    quantity: 0,
-    unit: '',
+  const [formData, setFormData] = useState<Partial<Recipe>>({
+    title: '',
+    description: '',
+    imageUrl: '',
+    type: RecipeType.MAIN,
+    preparationTime: 0,
+    cookingTime: 0,
+    servings: 4,
+    difficulty: DifficultyLevel.MEDIUM,
+    ingredients: [],
+    steps: [],
+    ...recipe
   });
 
-  const [newStep, setNewStep] = useState<string>('');
+  const [newIngredient, setNewIngredient] = useState({
+    name: '',
+    quantity: '',
+    unit: ''
+  });
+
+  const [newStep, setNewStep] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('RecipeForm - Soumission du formulaire:', formData);
     onSubmit(formData);
   };
 
@@ -53,16 +54,23 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
     if (newIngredient.name && newIngredient.quantity && newIngredient.unit) {
       setFormData({
         ...formData,
-        ingredients: [...(formData.ingredients || []), newIngredient as Ingredient],
+        ingredients: [
+          ...(formData.ingredients || []),
+          {
+            name: newIngredient.name,
+            quantity: parseFloat(newIngredient.quantity),
+            unit: newIngredient.unit
+          }
+        ]
       });
-      setNewIngredient({ name: '', quantity: 0, unit: '' });
+      setNewIngredient({ name: '', quantity: '', unit: '' });
     }
   };
 
   const removeIngredient = (index: number) => {
     setFormData({
       ...formData,
-      ingredients: formData.ingredients?.filter((_, i) => i !== index),
+      ingredients: formData.ingredients?.filter((_, i) => i !== index)
     });
   };
 
@@ -72,8 +80,11 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
         ...formData,
         steps: [
           ...(formData.steps || []),
-          { order: (formData.steps?.length || 0) + 1, description: newStep },
-        ],
+          {
+            order: (formData.steps?.length || 0) + 1,
+            description: newStep.trim()
+          }
+        ]
       });
       setNewStep('');
     }
@@ -82,10 +93,9 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
   const removeStep = (index: number) => {
     setFormData({
       ...formData,
-      steps: formData.steps?.filter((_, i) => i !== index).map((step, i) => ({
-        ...step,
-        order: i + 1,
-      })),
+      steps: formData.steps
+        ?.filter((_, i) => i !== index)
+        .map((step, i) => ({ ...step, order: i + 1 }))
     });
   };
 
@@ -111,6 +121,16 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
         </IonItem>
 
         <IonItem>
+          <IonLabel position="stacked">URL de l'image</IonLabel>
+          <IonInput
+            type="url"
+            value={formData.imageUrl}
+            onIonInput={e => setFormData({ ...formData, imageUrl: e.detail.value! })}
+            required
+          />
+        </IonItem>
+
+        <IonItem>
           <IonLabel position="stacked">Type</IonLabel>
           <IonSelect
             value={formData.type}
@@ -123,35 +143,35 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
         </IonItem>
 
         <IonItem>
-          <IonLabel position="stacked">Temps de préparation (min)</IonLabel>
+          <IonLabel position="stacked">Temps de préparation (minutes)</IonLabel>
           <IonInput
             type="number"
+            min="0"
             value={formData.preparationTime}
             onIonInput={e => setFormData({ ...formData, preparationTime: parseInt(e.detail.value!) })}
-            min="0"
             required
           />
         </IonItem>
 
         <IonItem>
-          <IonLabel position="stacked">Temps de cuisson (min)</IonLabel>
+          <IonLabel position="stacked">Temps de cuisson (minutes)</IonLabel>
           <IonInput
             type="number"
+            min="0"
             value={formData.cookingTime}
             onIonInput={e => setFormData({ ...formData, cookingTime: parseInt(e.detail.value!) })}
-            min="0"
             required
           />
         </IonItem>
 
         <IonItem>
           <IonLabel position="stacked">Nombre de personnes</IonLabel>
-          <IonRange
-            min={1}
-            max={12}
-            pin
+          <IonInput
+            type="number"
+            min="1"
             value={formData.servings}
-            onIonChange={e => setFormData({ ...formData, servings: e.detail.value as number })}
+            onIonInput={e => setFormData({ ...formData, servings: parseInt(e.detail.value!) })}
+            required
           />
         </IonItem>
 
@@ -175,7 +195,6 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
               {ingredient.quantity} {ingredient.unit} {ingredient.name}
             </IonLabel>
             <IonButton
-              slot="end"
               fill="clear"
               color="danger"
               onClick={() => removeIngredient(index)}
@@ -195,14 +214,14 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
             type="number"
             placeholder="Quantité"
             value={newIngredient.quantity}
-            onIonInput={e => setNewIngredient({ ...newIngredient, quantity: parseFloat(e.detail.value!) })}
+            onIonInput={e => setNewIngredient({ ...newIngredient, quantity: e.detail.value! })}
           />
           <IonInput
             placeholder="Unité"
             value={newIngredient.unit}
             onIonInput={e => setNewIngredient({ ...newIngredient, unit: e.detail.value! })}
           />
-          <IonButton slot="end" fill="clear" onClick={addIngredient}>
+          <IonButton fill="clear" onClick={addIngredient}>
             <IonIcon icon={add} />
           </IonButton>
         </IonItem>
@@ -215,7 +234,6 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
               {step.order}. {step.description}
             </IonLabel>
             <IonButton
-              slot="end"
               fill="clear"
               color="danger"
               onClick={() => removeStep(index)}
@@ -227,20 +245,18 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
 
         <IonItem>
           <IonInput
-            placeholder="Nouvelle étape"
+            placeholder="Description de l'étape"
             value={newStep}
             onIonInput={e => setNewStep(e.detail.value!)}
           />
-          <IonButton slot="end" fill="clear" onClick={addStep}>
+          <IonButton fill="clear" onClick={addStep}>
             <IonIcon icon={add} />
           </IonButton>
         </IonItem>
 
-        <IonItem>
-          <IonButton expand="block" type="submit" className="ion-margin-top">
-            {recipe ? 'Modifier la recette' : 'Créer la recette'}
-          </IonButton>
-        </IonItem>
+        <IonButton expand="block" type="submit" className="ion-margin-top">
+          {recipe ? 'Modifier la recette' : 'Créer la recette'}
+        </IonButton>
       </IonList>
     </form>
   );
