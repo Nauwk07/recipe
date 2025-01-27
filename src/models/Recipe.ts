@@ -26,16 +26,12 @@ export interface Recipe {
   title: string;
   description: string;
   imageUrl: string;
-  type: RecipeType;
-  preparationTime: number; // en minutes
-  cookingTime: number; // en minutes
-  servings: number;
-  difficulty: DifficultyLevel;
-  ingredients: Ingredient[];
-  steps: Step[];
-  rating: number;
-  ratingCount: number;
+  prepTime: string;
+  cookTime: string;
+  servings: string;
+  ingredients: string[];
+  steps: string[];
   isFavorite: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 } 

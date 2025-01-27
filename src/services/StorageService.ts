@@ -22,8 +22,17 @@ export class StorageService {
   static async addRecipe(recipe: Recipe): Promise<void> {
     console.log('StorageService - addRecipe - Nouvelle recette:', recipe);
     try {
+      const errors = this.validateRecipe(recipe);
+      if (errors.length > 0) {
+        throw new Error(errors.join('\n'));
+      }
+
       const recipes = await this.getAllRecipes();
-      recipes.push(recipe);
+      recipes.push({
+        ...recipe,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
       await Preferences.set({
         key: RECIPES_KEY,
         value: JSON.stringify(recipes)
@@ -39,10 +48,18 @@ export class StorageService {
   static async updateRecipe(updatedRecipe: Recipe): Promise<void> {
     console.log('StorageService - updateRecipe - Mise à jour:', updatedRecipe);
     try {
+      const errors = this.validateRecipe(updatedRecipe);
+      if (errors.length > 0) {
+        throw new Error(errors.join('\n'));
+      }
+
       const recipes = await this.getAllRecipes();
       const index = recipes.findIndex(recipe => recipe.id === updatedRecipe.id);
       if (index !== -1) {
-        recipes[index] = updatedRecipe;
+        recipes[index] = {
+          ...updatedRecipe,
+          updatedAt: new Date()
+        };
         await Preferences.set({
           key: RECIPES_KEY,
           value: JSON.stringify(recipes)
@@ -94,19 +111,51 @@ export class StorageService {
     }
   }
 
-  // Mettre à jour la note
-  static async updateRating(recipeId: string, newRating: number): Promise<void> {
-    const recipes = await this.getAllRecipes();
-    const index = recipes.findIndex(recipe => recipe.id === recipeId);
-    if (index !== -1) {
-      const recipe = recipes[index];
-      const totalRating = recipe.rating * recipe.ratingCount;
-      recipe.ratingCount += 1;
-      recipe.rating = (totalRating + newRating) / recipe.ratingCount;
-      await Preferences.set({
-        key: RECIPES_KEY,
-        value: JSON.stringify(recipes)
-      });
+  static async clearCache(): Promise<void> {
+    try {
+      await Preferences.remove({ key: RECIPES_KEY });
+      console.log('Cache nettoyé avec succès');
+    } catch (error) {
+      console.error('Erreur lors du nettoyage du cache:', error);
+      throw error;
     }
+  }
+
+  static validateRecipe(recipe: Recipe): string[] {
+    const errors: string[] = [];
+    
+    if (!recipe.title?.trim()) {
+      errors.push('Le titre est obligatoire');
+    }
+    
+    if (!recipe.description?.trim()) {
+      errors.push('La description est obligatoire');
+    }
+    
+    if (!recipe.imageUrl?.trim()) {
+      errors.push('L\'URL de l\'image est obligatoire');
+    }
+    
+    if (!recipe.prepTime?.trim()) {
+      errors.push('Le temps de préparation est obligatoire');
+    }
+    
+    if (!recipe.cookTime?.trim()) {
+      errors.push('Le temps de cuisson est obligatoire');
+    }
+    
+    if (!recipe.servings?.trim()) {
+      errors.push('Le nombre de portions est obligatoire');
+    }
+    
+    if (!recipe.ingredients?.length || recipe.ingredients.some(i => !i.trim())) {
+      errors.push('Au moins un ingrédient valide est requis');
+    }
+    
+    if (!recipe.steps?.length || recipe.steps.some(s => !s.trim())) {
+      errors.push('Au moins une étape valide est requise');
+    }
+    
+    return errors;
   }
 } 

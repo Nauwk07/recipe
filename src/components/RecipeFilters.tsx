@@ -1,58 +1,45 @@
 import React from 'react';
-import { 
-  IonSegment, 
-  IonSegmentButton, 
-  IonLabel, 
+import {
   IonSearchbar,
+  IonSegment,
+  IonSegmentButton,
+  IonLabel,
   IonToolbar,
 } from '@ionic/react';
-import { RecipeType } from '../models/Recipe';
 
 interface RecipeFiltersProps {
-  selectedType: RecipeType | 'ALL' | 'FAVORITES';
+  selectedFilter: 'ALL' | 'FAVORITES';
   searchQuery: string;
-  onTypeChange: (type: RecipeType | 'ALL' | 'FAVORITES') => void;
+  onFilterChange: (filter: 'ALL' | 'FAVORITES') => void;
   onSearchChange: (query: string) => void;
 }
 
 const RecipeFilters: React.FC<RecipeFiltersProps> = ({
-  selectedType,
+  selectedFilter,
   searchQuery,
-  onTypeChange,
+  onFilterChange,
   onSearchChange,
 }) => {
   return (
-    <div className="ion-padding">
-      <IonSearchbar
-        value={searchQuery}
-        onIonInput={(e) => onSearchChange(e.detail.value || '')}
-        placeholder="Rechercher une recette..."
-        className="mb-3"
-      />
-
+    <>
       <IonToolbar>
-        <IonSegment 
-          value={selectedType} 
-          onIonChange={(e) => onTypeChange(e.detail.value as RecipeType | 'ALL' | 'FAVORITES')}
-        >
+        <IonSegment value={selectedFilter} onIonChange={e => onFilterChange(e.detail.value as 'ALL' | 'FAVORITES')}>
           <IonSegmentButton value="ALL">
-            <IonLabel>Tout</IonLabel>
+            <IonLabel>Toutes</IonLabel>
           </IonSegmentButton>
           <IonSegmentButton value="FAVORITES">
             <IonLabel>Favoris</IonLabel>
           </IonSegmentButton>
-          <IonSegmentButton value={RecipeType.STARTER}>
-            <IonLabel>Entrées</IonLabel>
-          </IonSegmentButton>
-          <IonSegmentButton value={RecipeType.MAIN}>
-            <IonLabel>Plats</IonLabel>
-          </IonSegmentButton>
-          <IonSegmentButton value={RecipeType.DESSERT}>
-            <IonLabel>Desserts</IonLabel>
-          </IonSegmentButton>
         </IonSegment>
       </IonToolbar>
-    </div>
+      
+      <IonSearchbar
+        value={searchQuery}
+        onIonChange={e => onSearchChange(e.detail.value!)}
+        placeholder="Rechercher une recette..."
+        className="ion-padding-horizontal"
+      />
+    </>
   );
 };
 

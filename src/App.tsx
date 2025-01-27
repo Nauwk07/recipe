@@ -6,6 +6,7 @@ import { IonReactRouter } from '@ionic/react-router';
 import RecipeListPage from './pages/RecipeListPage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
 import RecipeFormPage from './pages/RecipeFormPage';
+import SettingsPage from './pages/SettingsPage';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -42,6 +43,9 @@ const App: React.FC = () => {
             </Route>
             <Route exact path="/recipe/edit/:id">
               <RecipeFormPage />
+            </Route>
+            <Route exact path="/settings">
+              <SettingsPage />
             </Route>
             
             {/* Puis les routes avec paramètres */}

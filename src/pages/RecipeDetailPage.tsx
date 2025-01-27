@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   IonPage, 
   IonHeader, 
@@ -7,7 +7,8 @@ import {
   IonContent, 
   IonButtons, 
   IonBackButton,
-  useIonViewWillEnter,
+  IonButton,
+  IonIcon,
   IonLoading,
   useIonAlert,
   useIonToast,
@@ -16,6 +17,7 @@ import { useParams, useHistory } from 'react-router-dom';
 import { Recipe } from '../models/Recipe';
 import { StorageService } from '../services/StorageService';
 import RecipeDetail from '../components/RecipeDetail';
+import { heart, pencil } from 'ionicons/icons';
 
 const RecipeDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,9 +27,9 @@ const RecipeDetailPage: React.FC = () => {
   const [presentAlert] = useIonAlert();
   const [presentToast] = useIonToast();
 
-  useIonViewWillEnter(() => {
+  useEffect(() => {
     loadRecipe();
-  });
+  }, [id]);
 
   const loadRecipe = async () => {
     try {
@@ -85,6 +87,25 @@ const RecipeDetailPage: React.FC = () => {
     });
   };
 
+  const toggleFavorite = async () => {
+    if (recipe) {
+      try {
+        await StorageService.toggleFavorite(recipe.id);
+        setRecipe({ ...recipe, isFavorite: !recipe.isFavorite });
+      } catch (error) {
+        console.error('Erreur lors du changement du statut favori:', error);
+      }
+    }
+  };
+
+  if (loading) {
+    return <IonLoading isOpen={true} message="Chargement..." />;
+  }
+
+  if (!recipe) {
+    return <div>Recette non trouvée</div>;
+  }
+
   return (
     <IonPage>
       <IonHeader>
@@ -92,19 +113,27 @@ const RecipeDetailPage: React.FC = () => {
           <IonButtons slot="start">
             <IonBackButton defaultHref="/recipes" />
           </IonButtons>
-          <IonTitle>{recipe?.title || 'Détail de la recette'}</IonTitle>
+          <IonTitle>{recipe.title}</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={handleEdit}>
+              <IonIcon slot="icon-only" icon={pencil} />
+            </IonButton>
+            <IonButton 
+              className={`favorite-button ${recipe.isFavorite ? 'active' : ''}`}
+              onClick={toggleFavorite}
+            >
+              <IonIcon slot="icon-only" icon={heart} />
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <IonLoading isOpen={loading} message="Chargement..." />
-        {recipe && (
-          <RecipeDetail
-            recipe={recipe}
-            onFavoriteClick={handleFavoriteClick}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        )}
+        <RecipeDetail
+          recipe={recipe}
+          onFavoriteClick={handleFavoriteClick}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </IonContent>
     </IonPage>
   );

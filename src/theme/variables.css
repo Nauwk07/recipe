@@ -190,3 +190,54 @@ ion-title {
   transform: scale(1.1);
   filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
 }
+
+/* Styles pour les boutons d'action sur la carte */
+.card-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  z-index: 1;
+}
+
+.card-actions ion-button {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  --background: rgba(255, 255, 255, 0.9);
+  --background-activated: rgba(255, 255, 255, 1);
+  --background-hover: rgba(255, 255, 255, 1);
+  --border-radius: 50%;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-actions ion-button ion-icon {
+  font-size: 20px;
+}
+
+.card-actions .favorite-button ion-icon {
+  color: var(--ion-color-danger);
+}
+
+.card-actions .edit-button ion-icon {
+  color: var(--ion-color-primary);
+}
+
+.card-actions .delete-button ion-icon {
+  color: var(--ion-color-danger);
+}
+
+/* Style pour la modale de détail */
+.recipe-detail-modal {
+  --height: 90%;
+  --border-radius: 20px 20px 0 0;
+}
+
+.recipe-detail-modal ion-content {
+  --background: var(--ion-background-color);
+}

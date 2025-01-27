@@ -13,10 +13,14 @@ import {
   IonIcon,
   useIonViewWillEnter,
   IonLoading,
+  IonButtons,
+  IonButton,
+  useIonAlert,
+  useIonToast,
 } from '@ionic/react';
-import { add } from 'ionicons/icons';
+import { add, settings } from 'ionicons/icons';
 import { useLocation, useHistory } from 'react-router-dom';
-import { Recipe, RecipeType } from '../models/Recipe';
+import { Recipe } from '../models/Recipe';
 import { StorageService } from '../services/StorageService';
 import RecipeCard from '../components/RecipeCard';
 import RecipeFilters from '../components/RecipeFilters';
@@ -24,16 +28,14 @@ import RecipeFilters from '../components/RecipeFilters';
 const RecipeListPage: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
-  const [selectedType, setSelectedType] = useState<RecipeType | 'ALL' | 'FAVORITES'>('ALL');
+  const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'FAVORITES'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [presentAlert] = useIonAlert();
+  const [presentToast] = useIonToast();
   
   const location = useLocation();
   const history = useHistory();
-
-  const handleAddClick = () => {
-    history.push('/recipe/new');
-  };
 
   // Charger les recettes au montage et à chaque retour sur la page
   useIonViewWillEnter(() => {
@@ -48,20 +50,12 @@ const RecipeListPage: React.FC = () => {
       
       // Appliquer les filtres de l'URL
       const params = new URLSearchParams(location.search);
-      const typeFilter = params.get('type') as RecipeType;
       const favoriteFilter = params.get('filter') === 'favorites';
-      const sortByRating = params.get('sort') === 'rating';
 
-      if (typeFilter) {
-        setSelectedType(typeFilter);
-      } else if (favoriteFilter) {
-        setSelectedType('FAVORITES');
+      if (favoriteFilter) {
+        setSelectedFilter('FAVORITES');
       } else {
-        setSelectedType('ALL');
-      }
-
-      if (sortByRating) {
-        loadedRecipes.sort((a, b) => b.rating - a.rating);
+        setSelectedFilter('ALL');
       }
     } finally {
       setLoading(false);
@@ -72,13 +66,9 @@ const RecipeListPage: React.FC = () => {
   useEffect(() => {
     let filtered = [...recipes];
 
-    // Filtre par type
-    if (selectedType !== 'ALL') {
-      if (selectedType === 'FAVORITES') {
-        filtered = filtered.filter(recipe => recipe.isFavorite);
-      } else {
-        filtered = filtered.filter(recipe => recipe.type === selectedType);
-      }
+    // Filtre par favoris
+    if (selectedFilter === 'FAVORITES') {
+      filtered = filtered.filter(recipe => recipe.isFavorite);
     }
 
     // Filtre par recherche
@@ -91,7 +81,7 @@ const RecipeListPage: React.FC = () => {
     }
 
     setFilteredRecipes(filtered);
-  }, [recipes, selectedType, searchQuery]);
+  }, [recipes, selectedFilter, searchQuery]);
 
   // Gérer les favoris
   const handleFavoriteClick = async (id: string) => {
@@ -99,15 +89,51 @@ const RecipeListPage: React.FC = () => {
     loadRecipes();
   };
 
+  const handleEdit = (id: string) => {
+    history.push(`/recipe/edit/${id}`);
+  };
+
+  const handleDelete = (id: string) => {
+    presentAlert({
+      header: 'Confirmer la suppression',
+      message: 'Êtes-vous sûr de vouloir supprimer cette recette ?',
+      buttons: [
+        {
+          text: 'Annuler',
+          role: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await StorageService.deleteRecipe(id);
+              presentToast({
+                message: 'Recette supprimée avec succès',
+                duration: 2000,
+                color: 'success',
+              });
+              loadRecipes();
+            } catch (error) {
+              presentToast({
+                message: 'Erreur lors de la suppression',
+                duration: 2000,
+                color: 'danger',
+              });
+            }
+          },
+        },
+      ],
+    });
+  };
+
   // Mettre à jour l'URL quand les filtres changent
-  const handleTypeChange = (type: RecipeType | 'ALL' | 'FAVORITES') => {
-    setSelectedType(type);
-    if (type === 'ALL') {
+  const handleFilterChange = (filter: 'ALL' | 'FAVORITES') => {
+    setSelectedFilter(filter);
+    if (filter === 'ALL') {
       history.push('/recipes');
-    } else if (type === 'FAVORITES') {
-      history.push('/recipes?filter=favorites');
     } else {
-      history.push(`/recipes?type=${type}`);
+      history.push('/recipes?filter=favorites');
     }
   };
 
@@ -116,15 +142,20 @@ const RecipeListPage: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonTitle>Mes Recettes</IonTitle>
+          <IonButtons slot="end">
+            <IonButton routerLink="/settings">
+              <IonIcon slot="icon-only" icon={settings} />
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent>
         <IonLoading isOpen={loading} message="Chargement..." />
         
         <RecipeFilters
-          selectedType={selectedType}
+          selectedFilter={selectedFilter}
           searchQuery={searchQuery}
-          onTypeChange={handleTypeChange}
+          onFilterChange={handleFilterChange}
           onSearchChange={setSearchQuery}
         />
         
@@ -135,6 +166,8 @@ const RecipeListPage: React.FC = () => {
                 <RecipeCard
                   recipe={recipe}
                   onFavoriteClick={handleFavoriteClick}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
                 />
               </IonCol>
             ))}
@@ -145,13 +178,12 @@ const RecipeListPage: React.FC = () => {
             )}
           </IonRow>
         </IonGrid>
-
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton onClick={handleAddClick}>
-            <IonIcon icon={add} />
-          </IonFabButton>
-        </IonFab>
       </IonContent>
+      <IonFab vertical="bottom" horizontal="end" slot="fixed">
+        <IonFabButton routerLink="/recipe/new">
+          <IonIcon icon={add} />
+        </IonFabButton>
+      </IonFab>
     </IonPage>
   );
 };
