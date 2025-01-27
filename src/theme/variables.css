@@ -1,2 +1,90 @@
 /* For information on how to create your own theme, please see:
 http://ionicframework.com/docs/theming/ */
+
+:root {
+  /* Couleurs principales */
+  --ion-color-primary: #2c3e50;
+  --ion-color-primary-rgb: 44, 62, 80;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #273746;
+  --ion-color-primary-tint: #415162;
+
+  /* Couleurs secondaires */
+  --ion-color-secondary: #e67e22;
+  --ion-color-secondary-rgb: 230, 126, 34;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #ca6f1e;
+  --ion-color-secondary-tint: #e98b38;
+
+  /* Couleurs de succès */
+  --ion-color-success: #27ae60;
+  --ion-color-success-rgb: 39, 174, 96;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #229954;
+  --ion-color-success-tint: #3db670;
+
+  /* Couleurs de danger */
+  --ion-color-danger: #e74c3c;
+  --ion-color-danger-rgb: 231, 76, 60;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #cb4335;
+  --ion-color-danger-tint: #e95e50;
+
+  /* Tons de gris */
+  --ion-color-medium: #95a5a6;
+  --ion-color-medium-rgb: 149, 165, 166;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #839192;
+  --ion-color-medium-tint: #a0aeb0;
+
+  --ion-color-light: #ecf0f1;
+  --ion-color-light-rgb: 236, 240, 241;
+  --ion-color-light-contrast: #000000;
+  --ion-color-light-contrast-rgb: 0, 0, 0;
+  --ion-color-light-shade: #d0d3d4;
+  --ion-color-light-tint: #eef2f3;
+
+  /* Configuration globale */
+  --ion-font-family: 'Montserrat', sans-serif;
+  --ion-background-color: #ffffff;
+  --ion-background-color-rgb: 255, 255, 255;
+  --ion-text-color: #2c3e50;
+  --ion-text-color-rgb: 44, 62, 80;
+
+  /* Bordures et ombres */
+  --ion-item-border-color: #ecf0f1;
+  --ion-card-border-radius: 12px;
+  --ion-border-radius: 8px;
+}
+
+/* Styles globaux */
+ion-content {
+  --background: #f8f9fa;
+}
+
+ion-card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: var(--ion-card-border-radius);
+}
+
+ion-button {
+  --border-radius: var(--ion-border-radius);
+  font-weight: 600;
+  text-transform: none;
+}
+
+ion-item {
+  --border-color: var(--ion-item-border-color);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 50px;
+}
+
+ion-title {
+  font-weight: 600;
+}

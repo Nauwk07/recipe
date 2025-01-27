@@ -1,0 +1,25 @@
+import React from 'react';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon } from '@ionic/react';
+import { add } from 'ionicons/icons';
+
+const RecipeListPage: React.FC = () => {
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>Mes Recettes</IonTitle>
+          <IonButtons slot="end">
+            <IonButton routerLink="/recipe/new">
+              <IonIcon slot="icon-only" icon={add} />
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        {/* Le contenu sera ajouté plus tard */}
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default RecipeListPage; 
