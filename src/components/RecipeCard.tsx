@@ -49,36 +49,59 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   };
 
   return (
-    <IonCard className="recipe-card" onClick={handleCardClick}>
-      <img src={recipe.imageUrl} alt={recipe.title} />
-      
+    <IonCard className="recipe-card">
+      <div onClick={handleCardClick}>
+        <div className="image-container">
+          <img src={recipe.imageUrl} alt={recipe.title} />
+          <IonButton
+            className={`favorite-button ${recipe.isFavorite ? 'active' : ''}`}
+            fill="clear"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onFavoriteClick(recipe.id);
+            }}
+          >
+            <IonIcon icon={recipe.isFavorite ? heart : heartOutline} />
+          </IonButton>
+        </div>
+
+        <IonCardHeader>
+          <IonCardTitle>{recipe.title}</IonCardTitle>
+        </IonCardHeader>
+
+        <IonCardContent>
+          <div className="recipe-info">
+            {recipe.prepTime && (
+              <IonBadge color="primary">
+                <IonIcon icon={time} /> {recipe.prepTime}
+              </IonBadge>
+            )}
+            {recipe.cookTime && (
+              <IonBadge color="secondary">
+                <IonIcon icon={time} /> {recipe.cookTime}
+              </IonBadge>
+            )}
+          </div>
+          <p className="recipe-description">{recipe.description}</p>
+        </IonCardContent>
+      </div>
+
       <div className="card-actions">
         <IonButton
-          className={`favorite-button ${recipe.isFavorite ? 'active' : ''}`}
           fill="clear"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onFavoriteClick(recipe.id);
-          }}
-        >
-          <IonIcon icon={recipe.isFavorite ? heart : heartOutline} />
-        </IonButton>
-
-        <IonButton
-          className="edit-button"
-          fill="clear"
+          color="primary"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onEdit(recipe.id);
           }}
         >
-          <IonIcon icon={pencil} />
+          <IonIcon icon={pencil} slot="start" />
+          Modifier
         </IonButton>
 
         <IonButton
-          className="delete-button"
           fill="clear"
           color="danger"
           onClick={(e) => {
@@ -87,29 +110,10 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             onDelete(recipe.id);
           }}
         >
-          <IonIcon icon={trash} />
+          <IonIcon icon={trash} slot="start" />
+          Supprimer
         </IonButton>
       </div>
-
-      <IonCardHeader>
-        <IonCardTitle>{recipe.title}</IonCardTitle>
-      </IonCardHeader>
-
-      <IonCardContent>
-        <div className="recipe-info">
-          {recipe.prepTime && (
-            <IonBadge color="primary">
-              <IonIcon icon={time} /> {recipe.prepTime}
-            </IonBadge>
-          )}
-          {recipe.cookTime && (
-            <IonBadge color="secondary">
-              <IonIcon icon={time} /> {recipe.cookTime}
-            </IonBadge>
-          )}
-        </div>
-        <p className="recipe-description">{recipe.description}</p>
-      </IonCardContent>
     </IonCard>
   );
 };
