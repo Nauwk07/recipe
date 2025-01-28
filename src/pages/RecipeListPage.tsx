@@ -142,15 +142,9 @@ const RecipeListPage: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonTitle>Mes Recettes</IonTitle>
-          <IonButtons slot="end">
-            <IonButton routerLink="/settings">
-              <IonIcon slot="icon-only" icon={settings} />
-            </IonButton>
-          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <IonLoading isOpen={loading} message="Chargement..." />
         
         <RecipeFilters
           selectedFilter={selectedFilter}

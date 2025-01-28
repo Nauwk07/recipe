@@ -111,16 +111,6 @@ export class StorageService {
     }
   }
 
-  static async clearCache(): Promise<void> {
-    try {
-      await Preferences.remove({ key: RECIPES_KEY });
-      console.log('Cache nettoyé avec succès');
-    } catch (error) {
-      console.error('Erreur lors du nettoyage du cache:', error);
-      throw error;
-    }
-  }
-
   static validateRecipe(recipe: Recipe): string[] {
     const errors: string[] = [];
     
