@@ -114,18 +114,27 @@ const RecipeDetailPage: React.FC = () => {
     });
   };
 
+  const updateRecipe = async () => {
+    const recipes = await StorageService.getAllRecipes();
+    const updatedRecipe = recipes.find(r => r.id === id);
+    if (updatedRecipe) {
+      setRecipe(updatedRecipe);
+    }
+  };
+
   const toggleFavorite = async () => {
-    if (recipe) {
-      try {
-        await StorageService.toggleFavorite(recipe.id);
-        const recipes = await StorageService.getAllRecipes();
-        const updatedRecipe = recipes.find(r => r.id === id);
-        if (updatedRecipe) {
-          setRecipe(updatedRecipe);
-        }
-      } catch (error) {
-        console.error('Erreur lors du changement du statut favori:', error);
-      }
+    if (!recipe) return;
+    
+    try {
+      await StorageService.toggleFavorite(recipe.id);
+      await updateRecipe();
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du favori:', error);
+      presentToast({
+        message: 'Erreur lors de la mise à jour du favori',
+        duration: 2000,
+        color: 'danger',
+      });
     }
   };
 
@@ -161,7 +170,7 @@ const RecipeDetailPage: React.FC = () => {
       <IonContent>
         <RecipeDetail
           recipe={recipe}
-          onFavoriteClick={handleFavoriteClick}
+          onFavoriteClick={toggleFavorite}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

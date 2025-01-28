@@ -136,24 +136,28 @@ export class StorageService {
       errors.push('L\'URL de l\'image est obligatoire');
     }
     
-    if (!recipe.prepTime?.trim()) {
-      errors.push('Le temps de préparation est obligatoire');
+    if (recipe.prepTime === undefined || recipe.prepTime < 0) {
+      errors.push('Le temps de préparation est obligatoire et doit être positif');
     }
     
-    if (!recipe.cookTime?.trim()) {
-      errors.push('Le temps de cuisson est obligatoire');
+    if (recipe.cookTime === undefined || recipe.cookTime < 0) {
+      errors.push('Le temps de cuisson est obligatoire et doit être positif');
     }
     
-    if (!recipe.servings?.trim()) {
-      errors.push('Le nombre de portions est obligatoire');
+    if (recipe.servings === undefined || recipe.servings <= 0) {
+      errors.push('Le nombre de portions est obligatoire et doit être supérieur à 0');
     }
     
-    if (!recipe.ingredients?.length || recipe.ingredients.some(i => !i.trim())) {
-      errors.push('Au moins un ingrédient valide est requis');
+    if (!recipe.ingredients?.length) {
+      errors.push('Au moins un ingrédient est requis');
+    } else if (recipe.ingredients.some(i => !i.name.trim() || !i.unit.trim() || i.quantity <= 0)) {
+      errors.push('Tous les ingrédients doivent avoir un nom, une unité et une quantité positive');
     }
     
-    if (!recipe.steps?.length || recipe.steps.some(s => !s.trim())) {
-      errors.push('Au moins une étape valide est requise');
+    if (!recipe.steps?.length) {
+      errors.push('Au moins une étape est requise');
+    } else if (recipe.steps.some(s => !s.description.trim())) {
+      errors.push('Toutes les étapes doivent avoir une description');
     }
     
     return errors;

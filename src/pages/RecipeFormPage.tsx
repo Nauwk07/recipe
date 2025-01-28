@@ -15,10 +15,26 @@ import {
   IonTextarea,
   IonLoading,
   useIonToast,
+  IonIcon,
+  IonSelect,
+  IonSelectOption,
 } from '@ionic/react';
 import { useHistory, useParams } from 'react-router-dom';
 import { Recipe, Ingredient, Step } from '../models/Recipe';
 import { StorageService } from '../services/StorageService';
+import { remove } from 'ionicons/icons';
+
+const UNITS = [
+  'g',
+  'kg',
+  'ml',
+  'l',
+  'cuillère à café',
+  'cuillère à soupe',
+  'tasse',
+  'pincée',
+  'unité',
+];
 
 const RecipeFormPage: React.FC = () => {
   const history = useHistory();
@@ -40,36 +56,48 @@ const RecipeFormPage: React.FC = () => {
   const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    if (id) {
-      loadRecipe();
-    }
-  }, [id]);
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
 
-  const loadRecipe = async () => {
-    try {
-      setLoading(true);
-      const recipes = await StorageService.getAllRecipes();
-      const foundRecipe = recipes.find(r => r.id === id);
-      if (foundRecipe) {
-        setRecipe(foundRecipe);
+    const loadRecipeData = async () => {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
+        const recipes = await StorageService.getAllRecipes();
+        const foundRecipe = recipes.find(r => r.id === id);
+        if (isMounted && foundRecipe) {
+          setRecipe(foundRecipe);
+        }
+      } catch (error) {
+        if (isMounted) {
+          presentToast({
+            message: 'Erreur lors du chargement de la recette',
+            duration: 2000,
+            color: 'danger',
+          });
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      presentToast({
-        message: 'Erreur lors du chargement de la recette',
-        duration: 2000,
-        color: 'danger',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    loadRecipeData();
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => setLoading(false), 100);
+    };
+  }, [id]);
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
       setErrors([]);
 
-      // Validation côté client
       const validationErrors = StorageService.validateRecipe(recipe);
       if (validationErrors.length > 0) {
         setErrors(validationErrors);
@@ -78,28 +106,26 @@ const RecipeFormPage: React.FC = () => {
           duration: 3000,
           color: 'danger',
         });
+        setLoading(false);
         return;
       }
 
       if (id) {
         await StorageService.updateRecipe(recipe);
-        presentToast({
-          message: 'Recette mise à jour avec succès',
-          duration: 2000,
-          color: 'success',
-        });
       } else {
         await StorageService.addRecipe({
           ...recipe,
           id: Date.now().toString(),
         });
-        presentToast({
-          message: 'Recette ajoutée avec succès',
-          duration: 2000,
-          color: 'success',
-        });
       }
-      history.push('/recipes');
+
+      presentToast({
+        message: id ? 'Recette mise à jour avec succès' : 'Recette ajoutée avec succès',
+        duration: 2000,
+        color: 'success',
+      });
+
+      history.replace('/recipes');
     } catch (error) {
       if (error instanceof Error) {
         setErrors(error.message.split('\n'));
@@ -269,19 +295,36 @@ const RecipeFormPage: React.FC = () => {
           </IonItem>
           {recipe.ingredients.map((ingredient, index) => (
             <IonItem key={index}>
-              <IonInput 
+              <IonInput
                 value={ingredient.name}
                 onIonChange={e => handleIngredientChange(index, { ...ingredient, name: e.detail.value! })}
-                placeholder={`Ingrédient ${index + 1}`}
+                placeholder="Nom"
               />
+              <IonInput
+                type="number"
+                min="0"
+                value={ingredient.quantity}
+                onIonChange={e => handleIngredientChange(index, { ...ingredient, quantity: parseFloat(e.detail.value!) || 0 })}
+                placeholder="Quantité"
+              />
+              <IonSelect
+                value={ingredient.unit}
+                onIonChange={e => handleIngredientChange(index, { ...ingredient, unit: e.detail.value! })}
+                placeholder="Unité"
+              >
+                {UNITS.map(unit => (
+                  <IonSelectOption key={unit} value={unit}>
+                    {unit}
+                  </IonSelectOption>
+                ))}
+              </IonSelect>
               <IonButton
                 slot="end"
                 fill="clear"
                 color="danger"
                 onClick={() => removeIngredient(index)}
-                disabled={recipe.ingredients.length === 1}
               >
-                Supprimer
+                <IonIcon icon={remove} />
               </IonButton>
             </IonItem>
           ))}
