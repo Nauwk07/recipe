@@ -12,9 +12,12 @@ import { Recipe } from '../models/Recipe';
 
 interface RecipeDetailProps {
   recipe: Recipe;
+  onFavoriteClick: (recipeId: string) => Promise<void>;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe }) => {
+const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe, onFavoriteClick, onEdit, onDelete }) => {
   return (
     <IonContent>
       <div className="modal-content">
@@ -39,27 +42,26 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe }) => {
           <p>{recipe.description}</p>
         </div>
 
-        <div className="recipe-section">
+        <div className="recipe-ingredients">
           <h2>Ingrédients</h2>
-          <IonList>
+          <ul>
             {recipe.ingredients.map((ingredient, index) => (
-              <IonItem key={index}>
-                <IonLabel>{ingredient}</IonLabel>
-              </IonItem>
+              <li key={index}>
+                {ingredient.quantity} {ingredient.unit} {ingredient.name}
+              </li>
             ))}
-          </IonList>
+          </ul>
         </div>
 
-        <div className="recipe-section">
+        <div className="recipe-steps">
           <h2>Étapes</h2>
-          <IonList>
+          <ol>
             {recipe.steps.map((step, index) => (
-              <IonItem key={index}>
-                <div className="step-number">{index + 1}</div>
-                <IonLabel className="ion-text-wrap">{step}</IonLabel>
-              </IonItem>
+              <li key={index}>
+                {step.description}
+              </li>
             ))}
-          </IonList>
+          </ol>
         </div>
       </div>
     </IonContent>

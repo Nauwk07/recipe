@@ -17,7 +17,7 @@ import {
   useIonToast,
 } from '@ionic/react';
 import { useHistory, useParams } from 'react-router-dom';
-import { Recipe } from '../models/Recipe';
+import { Recipe, Ingredient, Step } from '../models/Recipe';
 import { StorageService } from '../services/StorageService';
 
 const RecipeFormPage: React.FC = () => {
@@ -30,11 +30,11 @@ const RecipeFormPage: React.FC = () => {
     title: '',
     description: '',
     imageUrl: '',
-    prepTime: '',
-    cookTime: '',
-    servings: '',
-    ingredients: [''],
-    steps: [''],
+    prepTime: 0,
+    cookTime: 0,
+    servings: 0,
+    ingredients: [],
+    steps: [],
     isFavorite: false,
   });
   const [errors, setErrors] = useState<string[]>([]);
@@ -118,13 +118,13 @@ const RecipeFormPage: React.FC = () => {
     setRecipe(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleIngredientChange = (index: number, value: string) => {
+  const handleIngredientChange = (index: number, value: Ingredient) => {
     const newIngredients = [...recipe.ingredients];
     newIngredients[index] = value;
     setRecipe(prev => ({ ...prev, ingredients: newIngredients }));
   };
 
-  const handleStepChange = (index: number, value: string) => {
+  const handleStepChange = (index: number, value: Step) => {
     const newSteps = [...recipe.steps];
     newSteps[index] = value;
     setRecipe(prev => ({ ...prev, steps: newSteps }));
@@ -133,14 +133,14 @@ const RecipeFormPage: React.FC = () => {
   const addIngredient = () => {
     setRecipe(prev => ({
       ...prev,
-      ingredients: [...prev.ingredients, ''],
+      ingredients: [...prev.ingredients, { name: '', quantity: 0, unit: '' }],
     }));
   };
 
   const addStep = () => {
     setRecipe(prev => ({
       ...prev,
-      steps: [...prev.steps, ''],
+      steps: [...prev.steps, { description: '', order: 0 }],
     }));
   };
 
@@ -269,9 +269,9 @@ const RecipeFormPage: React.FC = () => {
           </IonItem>
           {recipe.ingredients.map((ingredient, index) => (
             <IonItem key={index}>
-              <IonInput
-                value={ingredient}
-                onIonChange={e => handleIngredientChange(index, e.detail.value!)}
+              <IonInput 
+                value={ingredient.name}
+                onIonChange={e => handleIngredientChange(index, { ...ingredient, name: e.detail.value! })}
                 placeholder={`Ingrédient ${index + 1}`}
               />
               <IonButton
@@ -297,8 +297,8 @@ const RecipeFormPage: React.FC = () => {
           {recipe.steps.map((step, index) => (
             <IonItem key={index}>
               <IonTextarea
-                value={step}
-                onIonChange={e => handleStepChange(index, e.detail.value!)}
+                value={step.description}
+                onIonChange={e => handleStepChange(index, { ...step, description: e.detail.value! })}
                 placeholder={`Étape ${index + 1}`}
                 rows={2}
               />

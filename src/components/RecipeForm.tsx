@@ -12,7 +12,7 @@ import {
   IonItemDivider,
 } from '@ionic/react';
 import { add, remove } from 'ionicons/icons';
-import { Recipe, RecipeType, DifficultyLevel } from '../models/Recipe';
+import { Recipe, Ingredient, Step } from '../models/Recipe';
 
 interface RecipeFormProps {
   recipe?: Recipe;
@@ -26,13 +26,12 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
     title: '',
     description: '',
     imageUrl: '',
-    type: RecipeType.MAIN,
-    preparationTime: 0,
-    cookingTime: 0,
+    prepTime: 0,
+    cookTime: 0,
     servings: 4,
-    difficulty: DifficultyLevel.MEDIUM,
-    ingredients: [],
-    steps: [],
+    ingredients: [] as Ingredient[],
+    steps: [] as Step[],
+    isFavorite: false,
     ...recipe
   });
 
@@ -131,24 +130,12 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
         </IonItem>
 
         <IonItem>
-          <IonLabel position="stacked">Type</IonLabel>
-          <IonSelect
-            value={formData.type}
-            onIonChange={e => setFormData({ ...formData, type: e.detail.value })}
-          >
-            <IonSelectOption value={RecipeType.STARTER}>Entrée</IonSelectOption>
-            <IonSelectOption value={RecipeType.MAIN}>Plat</IonSelectOption>
-            <IonSelectOption value={RecipeType.DESSERT}>Dessert</IonSelectOption>
-          </IonSelect>
-        </IonItem>
-
-        <IonItem>
           <IonLabel position="stacked">Temps de préparation (minutes)</IonLabel>
           <IonInput
             type="number"
             min="0"
-            value={formData.preparationTime}
-            onIonInput={e => setFormData({ ...formData, preparationTime: parseInt(e.detail.value!) })}
+            value={formData.prepTime}
+            onIonInput={e => setFormData({ ...formData, prepTime: parseInt(e.detail.value!) })}
             required
           />
         </IonItem>
@@ -158,8 +145,8 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
           <IonInput
             type="number"
             min="0"
-            value={formData.cookingTime}
-            onIonInput={e => setFormData({ ...formData, cookingTime: parseInt(e.detail.value!) })}
+            value={formData.cookTime}
+            onIonInput={e => setFormData({ ...formData, cookTime: parseInt(e.detail.value!) })}
             required
           />
         </IonItem>
@@ -173,18 +160,6 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
             onIonInput={e => setFormData({ ...formData, servings: parseInt(e.detail.value!) })}
             required
           />
-        </IonItem>
-
-        <IonItem>
-          <IonLabel position="stacked">Difficulté</IonLabel>
-          <IonSelect
-            value={formData.difficulty}
-            onIonChange={e => setFormData({ ...formData, difficulty: e.detail.value })}
-          >
-            <IonSelectOption value={DifficultyLevel.EASY}>Facile</IonSelectOption>
-            <IonSelectOption value={DifficultyLevel.MEDIUM}>Moyen</IonSelectOption>
-            <IonSelectOption value={DifficultyLevel.HARD}>Difficile</IonSelectOption>
-          </IonSelect>
         </IonItem>
 
         <IonItemDivider>Ingrédients</IonItemDivider>

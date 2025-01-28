@@ -1,15 +1,3 @@
-export enum RecipeType {
-  STARTER = 'STARTER',
-  MAIN = 'MAIN',
-  DESSERT = 'DESSERT'
-}
-
-export enum DifficultyLevel {
-  EASY = 'EASY',
-  MEDIUM = 'MEDIUM',
-  HARD = 'HARD'
-}
-
 export interface Ingredient {
   name: string;
   quantity: number;
@@ -26,11 +14,11 @@ export interface Recipe {
   title: string;
   description: string;
   imageUrl: string;
-  prepTime: string;
-  cookTime: string;
-  servings: string;
-  ingredients: string[];
-  steps: string[];
+  prepTime: number;
+  cookTime: number;
+  servings: number;
+  ingredients: Ingredient[];
+  steps: Step[];
   isFavorite: boolean;
   createdAt?: Date;
   updatedAt?: Date;

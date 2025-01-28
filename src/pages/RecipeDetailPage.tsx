@@ -28,33 +28,55 @@ const RecipeDetailPage: React.FC = () => {
   const [presentToast] = useIonToast();
 
   useEffect(() => {
-    loadRecipe();
+    let isMounted = true;
+    
+    const loadRecipeData = async () => {
+      try {
+        const recipes = await StorageService.getAllRecipes();
+        const foundRecipe = recipes.find(r => r.id === id);
+        if (isMounted) {
+          if (foundRecipe) {
+            setRecipe(foundRecipe);
+          } else {
+            throw new Error('Recette non trouvée');
+          }
+        }
+      } catch (error) {
+        if (isMounted) {
+          presentToast({
+            message: 'Erreur lors du chargement de la recette',
+            duration: 2000,
+            color: 'danger',
+          });
+          history.push('/recipes');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    setLoading(true);
+    loadRecipeData();
+
+    return () => {
+      isMounted = false;
+      setLoading(false);
+    };
   }, [id]);
 
-  const loadRecipe = async () => {
+  const handleFavoriteClick = async (recipeId: string) => {
     try {
+      await StorageService.toggleFavorite(recipeId);
       const recipes = await StorageService.getAllRecipes();
-      const foundRecipe = recipes.find(r => r.id === id);
-      if (foundRecipe) {
-        setRecipe(foundRecipe);
-      } else {
-        throw new Error('Recette non trouvée');
+      const updatedRecipe = recipes.find(r => r.id === id);
+      if (updatedRecipe) {
+        setRecipe(updatedRecipe);
       }
     } catch (error) {
-      presentToast({
-        message: 'Erreur lors du chargement de la recette',
-        duration: 2000,
-        color: 'danger',
-      });
-      history.push('/recipes');
-    } finally {
-      setLoading(false);
+      console.error('Erreur lors de la mise à jour du favori:', error);
     }
-  };
-
-  const handleFavoriteClick = async (recipeId: string) => {
-    await StorageService.toggleFavorite(recipeId);
-    loadRecipe();
   };
 
   const handleEdit = () => {
@@ -74,13 +96,18 @@ const RecipeDetailPage: React.FC = () => {
           text: 'Supprimer',
           role: 'destructive',
           handler: async () => {
-            await StorageService.deleteRecipe(id);
-            presentToast({
-              message: 'Recette supprimée avec succès',
-              duration: 2000,
-              color: 'success',
-            });
-            history.push('/recipes');
+            setLoading(true);
+            try {
+              await StorageService.deleteRecipe(id);
+              presentToast({
+                message: 'Recette supprimée avec succès',
+                duration: 2000,
+                color: 'success',
+              });
+              history.push('/recipes');
+            } finally {
+              setLoading(false);
+            }
           },
         },
       ],
@@ -91,7 +118,11 @@ const RecipeDetailPage: React.FC = () => {
     if (recipe) {
       try {
         await StorageService.toggleFavorite(recipe.id);
-        setRecipe({ ...recipe, isFavorite: !recipe.isFavorite });
+        const recipes = await StorageService.getAllRecipes();
+        const updatedRecipe = recipes.find(r => r.id === id);
+        if (updatedRecipe) {
+          setRecipe(updatedRecipe);
+        }
       } catch (error) {
         console.error('Erreur lors du changement du statut favori:', error);
       }
