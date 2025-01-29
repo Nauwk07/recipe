@@ -1,6 +1,9 @@
+// @capacitor/preferences est un plugin Ionic qui permet de stocker des données localement
+// Il est plus moderne et cross-platform que localStorage
 import { Preferences } from '@capacitor/preferences';
 import { Recipe } from '../models/Recipe';
 
+// Clé unique pour stocker toutes les recettes dans Preferences
 const RECIPES_KEY = 'recipes';
 
 export class StorageService {
@@ -8,6 +11,7 @@ export class StorageService {
   static async getAllRecipes(): Promise<Recipe[]> {
     console.log('StorageService - getAllRecipes - Début');
     try {
+      // Preferences stocke tout en string, donc on doit parser le JSON
       const { value } = await Preferences.get({ key: RECIPES_KEY });
       const recipes = value ? JSON.parse(value) : [];
       console.log('StorageService - getAllRecipes - Recettes récupérées:', recipes);
@@ -22,17 +26,20 @@ export class StorageService {
   static async addRecipe(recipe: Recipe): Promise<void> {
     console.log('StorageService - addRecipe - Nouvelle recette:', recipe);
     try {
+      // Validation avant sauvegarde pour garantir l'intégrité des données
       const errors = this.validateRecipe(recipe);
       if (errors.length > 0) {
         throw new Error(errors.join('\n'));
       }
 
       const recipes = await this.getAllRecipes();
+      // On ajoute les timestamps pour le suivi des modifications
       recipes.push({
         ...recipe,
         createdAt: new Date(),
         updatedAt: new Date()
       });
+      // On doit stringify car Preferences ne stocke que des strings
       await Preferences.set({
         key: RECIPES_KEY,
         value: JSON.stringify(recipes)
@@ -54,8 +61,10 @@ export class StorageService {
       }
 
       const recipes = await this.getAllRecipes();
+      // On utilise findIndex plutôt qu'un filter pour la performance
       const index = recipes.findIndex(recipe => recipe.id === updatedRecipe.id);
       if (index !== -1) {
+        // On garde les données existantes et on met à jour uniquement updatedAt
         recipes[index] = {
           ...updatedRecipe,
           updatedAt: new Date()
@@ -79,6 +88,7 @@ export class StorageService {
     console.log('StorageService - deleteRecipe - ID:', recipeId);
     try {
       const recipes = await this.getAllRecipes();
+      // Filter crée une nouvelle array sans modifier l'originale
       const filteredRecipes = recipes.filter(recipe => recipe.id !== recipeId);
       await Preferences.set({
         key: RECIPES_KEY,
@@ -98,6 +108,7 @@ export class StorageService {
       const recipes = await this.getAllRecipes();
       const index = recipes.findIndex(recipe => recipe.id === recipeId);
       if (index !== -1) {
+        // Toggle booléen avec l'opérateur !
         recipes[index].isFavorite = !recipes[index].isFavorite;
         await Preferences.set({
           key: RECIPES_KEY,
@@ -111,9 +122,13 @@ export class StorageService {
     }
   }
 
+  // Fonction de validation complète pour garantir l'intégrité des données
+  // Retourne un tableau d'erreurs qui doit être vide pour une recette valide
   static validateRecipe(recipe: Recipe): string[] {
     const errors: string[] = [];
     
+    // On utilise le chaînage optionnel ?. pour éviter les erreurs si la propriété est undefined
+    // trim() élimine les espaces vides au début et à la fin
     if (!recipe.title?.trim()) {
       errors.push('Le titre est obligatoire');
     }
@@ -126,6 +141,7 @@ export class StorageService {
       errors.push('L\'URL de l\'image est obligatoire');
     }
     
+    // === undefined vérifie aussi bien undefined que non assigné
     if (recipe.prepTime === undefined || recipe.prepTime < 0) {
       errors.push('Le temps de préparation est obligatoire et doit être positif');
     }
@@ -138,6 +154,7 @@ export class StorageService {
       errors.push('Le nombre de portions est obligatoire et doit être supérieur à 0');
     }
     
+    // Validation des tableaux avec des vérifications imbriquées
     if (!recipe.ingredients?.length) {
       errors.push('Au moins un ingrédient est requis');
     } else if (recipe.ingredients.some(i => !i.name.trim() || !i.unit.trim() || i.quantity <= 0)) {

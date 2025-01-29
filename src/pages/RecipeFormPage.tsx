@@ -40,7 +40,6 @@ const RecipeFormPage: React.FC = () => {
   const history = useHistory();
   const { id } = useParams<{ id?: string }>();
   const [presentToast] = useIonToast();
-  const [loading, setLoading] = useState(false);
   const [recipe, setRecipe] = useState<Recipe>({
     id: '',
     title: '',
@@ -53,63 +52,30 @@ const RecipeFormPage: React.FC = () => {
     steps: [],
     isFavorite: false,
   });
-  const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    let isMounted = true;
-    let timeoutId: NodeJS.Timeout;
-
-    const loadRecipeData = async () => {
+    const loadRecipe = async () => {
       if (!id) return;
-      
       try {
-        setLoading(true);
         const recipes = await StorageService.getAllRecipes();
         const foundRecipe = recipes.find(r => r.id === id);
-        if (isMounted && foundRecipe) {
+        if (foundRecipe) {
           setRecipe(foundRecipe);
         }
       } catch (error) {
-        if (isMounted) {
-          presentToast({
-            message: 'Erreur lors du chargement de la recette',
-            duration: 2000,
-            color: 'danger',
-          });
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        presentToast({
+          message: 'Erreur lors du chargement de la recette',
+          duration: 2000,
+          color: 'danger',
+        });
       }
     };
 
-    loadRecipeData();
-
-    return () => {
-      isMounted = false;
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => setLoading(false), 100);
-    };
+    loadRecipe();
   }, [id]);
 
   const handleSubmit = async () => {
     try {
-      setLoading(true);
-      setErrors([]);
-
-      const validationErrors = StorageService.validateRecipe(recipe);
-      if (validationErrors.length > 0) {
-        setErrors(validationErrors);
-        presentToast({
-          message: 'Veuillez corriger les erreurs avant de soumettre',
-          duration: 3000,
-          color: 'danger',
-        });
-        setLoading(false);
-        return;
-      }
-
       if (id) {
         await StorageService.updateRecipe(recipe);
       } else {
@@ -127,16 +93,11 @@ const RecipeFormPage: React.FC = () => {
 
       history.replace('/recipes');
     } catch (error) {
-      if (error instanceof Error) {
-        setErrors(error.message.split('\n'));
-      }
       presentToast({
-        message: 'Erreur lors de l\'enregistrement',
+        message: error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement',
         duration: 2000,
         color: 'danger',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -145,15 +106,19 @@ const RecipeFormPage: React.FC = () => {
   };
 
   const handleIngredientChange = (index: number, value: Ingredient) => {
-    const newIngredients = [...recipe.ingredients];
-    newIngredients[index] = value;
-    setRecipe(prev => ({ ...prev, ingredients: newIngredients }));
+    setRecipe(prev => ({
+      ...prev,
+      ingredients: prev.ingredients.map((ing, i) => i === index ? value : ing)
+    }));
   };
 
-  const handleStepChange = (index: number, value: Step) => {
-    const newSteps = [...recipe.steps];
-    newSteps[index] = value;
-    setRecipe(prev => ({ ...prev, steps: newSteps }));
+  const handleStepChange = (index: number, description: string) => {
+    setRecipe(prev => ({
+      ...prev,
+      steps: prev.steps.map((step, i) => 
+        i === index ? { description, order: index } : step
+      )
+    }));
   };
 
   const addIngredient = () => {
@@ -166,7 +131,7 @@ const RecipeFormPage: React.FC = () => {
   const addStep = () => {
     setRecipe(prev => ({
       ...prev,
-      steps: [...prev.steps, { description: '', order: 0 }],
+      steps: [...prev.steps, { description: '', order: prev.steps.length }],
     }));
   };
 
@@ -180,7 +145,8 @@ const RecipeFormPage: React.FC = () => {
   const removeStep = (index: number) => {
     setRecipe(prev => ({
       ...prev,
-      steps: prev.steps.filter((_, i) => i !== index),
+      steps: prev.steps.filter((_, i) => i !== index)
+        .map((step, i) => ({ ...step, order: i })),
     }));
   };
 
@@ -200,25 +166,9 @@ const RecipeFormPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent>
-        <IonLoading isOpen={loading} message="Chargement..." />
-        
-        {errors.length > 0 && (
-          <div className="ion-padding">
-            <IonList>
-              {errors.map((error, index) => (
-                <IonItem key={index} color="danger">
-                  <IonLabel className="ion-text-wrap">{error}</IonLabel>
-                </IonItem>
-              ))}
-            </IonList>
-          </div>
-        )}
-
         <IonList>
           <IonItem>
-            <IonLabel position="stacked">
-              Titre <span style={{ color: 'var(--ion-color-danger)' }}>*</span>
-            </IonLabel>
+            <IonLabel position="stacked">Titre</IonLabel>
             <IonInput
               value={recipe.title}
               onIonChange={e => handleInputChange('title', e.detail.value!)}
@@ -228,67 +178,62 @@ const RecipeFormPage: React.FC = () => {
           </IonItem>
 
           <IonItem>
-            <IonLabel position="stacked">
-              Description <span style={{ color: 'var(--ion-color-danger)' }}>*</span>
-            </IonLabel>
+            <IonLabel position="stacked">Description</IonLabel>
             <IonTextarea
               value={recipe.description}
               onIonChange={e => handleInputChange('description', e.detail.value!)}
               placeholder="Description de la recette"
+              required
               rows={3}
             />
           </IonItem>
 
           <IonItem>
-            <IonLabel position="stacked">
-              Image URL <span style={{ color: 'var(--ion-color-danger)' }}>*</span>
-            </IonLabel>
+            <IonLabel position="stacked">Image URL</IonLabel>
             <IonInput
               value={recipe.imageUrl}
               onIonChange={e => handleInputChange('imageUrl', e.detail.value!)}
               placeholder="URL de l'image"
               type="url"
+              required
             />
           </IonItem>
 
           <IonItem>
-            <IonLabel position="stacked">
-              Temps de préparation <span style={{ color: 'var(--ion-color-danger)' }}>*</span>
-            </IonLabel>
+            <IonLabel position="stacked">Temps de préparation (min)</IonLabel>
             <IonInput
               value={recipe.prepTime}
-              onIonChange={e => handleInputChange('prepTime', e.detail.value!)}
-              placeholder="Ex: 30 minutes"
+              onIonChange={e => handleInputChange('prepTime', parseInt(e.detail.value!) || 0)}
+              type="number"
+              min="0"
+              required
             />
           </IonItem>
 
           <IonItem>
-            <IonLabel position="stacked">
-              Temps de cuisson <span style={{ color: 'var(--ion-color-danger)' }}>*</span>
-            </IonLabel>
+            <IonLabel position="stacked">Temps de cuisson (min)</IonLabel>
             <IonInput
               value={recipe.cookTime}
-              onIonChange={e => handleInputChange('cookTime', e.detail.value!)}
-              placeholder="Ex: 45 minutes"
+              onIonChange={e => handleInputChange('cookTime', parseInt(e.detail.value!) || 0)}
+              type="number"
+              min="0"
+              required
             />
           </IonItem>
 
           <IonItem>
-            <IonLabel position="stacked">
-              Nombre de portions <span style={{ color: 'var(--ion-color-danger)' }}>*</span>
-            </IonLabel>
+            <IonLabel position="stacked">Nombre de portions</IonLabel>
             <IonInput
               value={recipe.servings}
-              onIonChange={e => handleInputChange('servings', e.detail.value!)}
-              placeholder="Ex: 4"
+              onIonChange={e => handleInputChange('servings', parseInt(e.detail.value!) || 0)}
               type="number"
+              min="1"
+              required
             />
           </IonItem>
 
           <IonItem>
-            <IonLabel>
-              Ingrédients <span style={{ color: 'var(--ion-color-danger)' }}>*</span>
-            </IonLabel>
+            <IonLabel>Ingrédients</IonLabel>
             <IonButton slot="end" size="small" onClick={addIngredient}>
               Ajouter
             </IonButton>
@@ -299,6 +244,7 @@ const RecipeFormPage: React.FC = () => {
                 value={ingredient.name}
                 onIonChange={e => handleIngredientChange(index, { ...ingredient, name: e.detail.value! })}
                 placeholder="Nom"
+                required
               />
               <IonInput
                 type="number"
@@ -306,6 +252,7 @@ const RecipeFormPage: React.FC = () => {
                 value={ingredient.quantity}
                 onIonChange={e => handleIngredientChange(index, { ...ingredient, quantity: parseFloat(e.detail.value!) || 0 })}
                 placeholder="Quantité"
+                required
               />
               <IonSelect
                 value={ingredient.unit}
@@ -330,9 +277,7 @@ const RecipeFormPage: React.FC = () => {
           ))}
 
           <IonItem>
-            <IonLabel>
-              Étapes <span style={{ color: 'var(--ion-color-danger)' }}>*</span>
-            </IonLabel>
+            <IonLabel>Étapes</IonLabel>
             <IonButton slot="end" size="small" onClick={addStep}>
               Ajouter
             </IonButton>
@@ -341,8 +286,9 @@ const RecipeFormPage: React.FC = () => {
             <IonItem key={index}>
               <IonTextarea
                 value={step.description}
-                onIonChange={e => handleStepChange(index, { ...step, description: e.detail.value! })}
+                onIonChange={e => handleStepChange(index, e.detail.value!)}
                 placeholder={`Étape ${index + 1}`}
+                required
                 rows={2}
               />
               <IonButton
@@ -352,7 +298,7 @@ const RecipeFormPage: React.FC = () => {
                 onClick={() => removeStep(index)}
                 disabled={recipe.steps.length === 1}
               >
-                Supprimer
+                <IonIcon icon={remove} />
               </IonButton>
             </IonItem>
           ))}
