@@ -11,8 +11,9 @@ import {
   IonIcon,
   IonItemDivider,
 } from '@ionic/react';
-import { add, remove } from 'ionicons/icons';
+import { add, remove, camera } from 'ionicons/icons';
 import { Recipe, Ingredient, Step } from '../models/Recipe';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 interface RecipeFormProps {
   recipe?: Recipe;
@@ -98,6 +99,25 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
     });
   };
 
+  const takePicture = async () => {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: true,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera
+      });
+      
+      // On met à jour l'URL de l'image dans le state
+      setFormData(prev => ({
+        ...prev,
+        imageUrl: image.webPath || ''
+      }));
+    } catch (error) {
+      console.error('Erreur lors de la prise de photo:', error);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="ion-padding">
       <IonList>
@@ -120,14 +140,24 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit }) => {
         </IonItem>
 
         <IonItem>
-          <IonLabel position="stacked">URL de l'image</IonLabel>
+          <IonLabel position="stacked">Image</IonLabel>
           <IonInput
-            type="url"
             value={formData.imageUrl}
-            onIonInput={e => setFormData({ ...formData, imageUrl: e.detail.value! })}
-            required
+            onIonChange={e => setFormData({ ...formData, imageUrl: e.detail.value! })}
+            placeholder="URL de l'image"
           />
         </IonItem>
+        
+        <IonButton 
+          expand="block" 
+          onClick={takePicture} 
+          type="button" 
+          color="secondary"
+          className="ion-margin"
+        >
+          <IonIcon slot="start" icon={camera}></IonIcon>
+          Prendre une photo
+        </IonButton>
 
         <IonItem>
           <IonLabel position="stacked">Temps de préparation (minutes)</IonLabel>

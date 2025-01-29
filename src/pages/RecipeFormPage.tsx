@@ -22,7 +22,8 @@ import {
 import { useHistory, useParams } from 'react-router-dom';
 import { Recipe, Ingredient, Step } from '../models/Recipe';
 import { StorageService } from '../services/StorageService';
-import { remove } from 'ionicons/icons';
+import { remove, camera } from 'ionicons/icons';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 const UNITS = [
   'g',
@@ -150,6 +151,26 @@ const RecipeFormPage: React.FC = () => {
     }));
   };
 
+  const takePicture = async () => {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: true,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera
+      });
+      
+      handleInputChange('imageUrl', image.webPath || '');
+    } catch (error) {
+      console.error('Erreur lors de la prise de photo:', error);
+      presentToast({
+        message: 'Erreur lors de la prise de photo',
+        duration: 2000,
+        color: 'danger',
+      });
+    }
+  };
+
   return (
     <IonPage>
       <IonHeader>
@@ -198,6 +219,16 @@ const RecipeFormPage: React.FC = () => {
               required
             />
           </IonItem>
+
+          <IonButton 
+            expand="block" 
+            onClick={takePicture} 
+            className="ion-margin"
+            color="secondary"
+          >
+            <IonIcon slot="start" icon={camera} />
+            Prendre une photo
+          </IonButton>
 
           <IonItem>
             <IonLabel position="stacked">Temps de préparation (min)</IonLabel>

@@ -4,7 +4,6 @@ import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 
 import RecipeListPage from './pages/RecipeListPage';
-import RecipeDetailPage from './pages/RecipeDetailPage';
 import RecipeFormPage from './pages/RecipeFormPage';
 
 /* Core CSS required for Ionic components to work properly */
@@ -42,11 +41,6 @@ const App: React.FC = () => {
             </Route>
             <Route exact path="/recipe/edit/:id">
               <RecipeFormPage />
-            </Route>
-            
-            {/* Puis les routes avec paramètres */}
-            <Route exact path="/recipe/:id">
-              <RecipeDetailPage />
             </Route>
             
             {/* Routes normales */}
